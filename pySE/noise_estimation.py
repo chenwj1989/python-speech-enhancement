@@ -26,10 +26,11 @@ def noise_default(speech, noise_prev, parameters):
     return noise
 
 def default_noise_parameters():
-    parameters = {'alpha':0.98,  'P_speech': 0}
+    parameters = {'noise_method': 'vad', 'alpha': 0.98,  'P_speech': 0}
     return parameters
 
-def noise_estimation(speech, noise_prev, parameters, method="default"):
+def noise_estimation(speech, noise_prev, parameters):
+    method = parameters['noise_method']
 
     if method == "mcra":
         #nosie =  mcra(parameters)

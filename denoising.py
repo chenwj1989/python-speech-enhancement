@@ -6,16 +6,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import soundfile as sf
 
-from ns_process import ns_init
-from suppression_gain import suppression_gain
-from compute_snr import compute_snr
-from noise_estimation import noise_estimation
-from speech_precense_probability import spp
+from pySE.ns_process import NoiseSuppression
+from pySE.suppression_gain import ns_gain
+from pySE.compute_snr import compute_snr
+from pySE.noise_estimation import noise_estimation
+from pySE.speech_precense_probability import spp
 
 def main():
-    input_file = "test/sp02_train_sn5.wav"
+    input_file = "test/sp04_babble_sn10.wav"
     output_file = "test/out.wav"
-    SAMPLE_RATE = 44100
+    #SAMPLE_RATE = 44100
     x, Srate = sf.read(input_file)
 
     # ====== Make window ========
@@ -60,9 +60,10 @@ def main():
     #eta = 0.15
     #ksi_min = 10 ** (-25 / 10)
 
-    ns_parameters = ns_init()
+    ns = NoiseSuppression('logmmse', 'vad', len2, Slen, nFFT)
+    ns_parameters = ns.get_parameters()
     gain_parameters = ns_parameters["gain_parameters"]
-    gain_method = 'logmmse'
+    gain_parameters['gain_method'] = 'logmmse'
 
     noise_parameters = ns_parameters["noise_parameters"]
     noise_parameters['alpha'] = 0.98
@@ -76,7 +77,7 @@ def main():
     snr_parameters['ksi_min'] = 10 ** (-25 / 10)
     snr_parameters['dd_nr_snr'] = 0.98
 
-    prev_ksi = np.ones(nFFT)
+    prev_ksi = []
     qk = np.ones(nFFT) * 0.5
     #=============================  Start Processing =======================================================
     for k in range(0, Nframes*len2, len2):
@@ -90,19 +91,19 @@ def main():
 
         spp_parameters['ksi'] = ksi
         spp_parameters['gamma'] = gamma
-        pSpeech = spp(qk, spp_parameters)
+        #pSpeech = spp(qk, spp_parameters)
 
         # 3 precise noise estimation
-        noise_parameters['P_speech'] = pSpeech
+        #noise_parameters['P_speech'] = pSpeech
         noise_parameters['ksi'] = ksi
         noise_parameters['gamma'] = gamma
         noise_mu2 = noise_estimation(sig2, noise_mu2, noise_parameters, noise_method)
 
-        gamma, ksi = compute_snr(sig2, noise_mu2, prev_ksi, snr_parameters)
+        gamma, ksi = compute_snr(sig2, noise_mu2, ksi, snr_parameters)
 
         gain_parameters['ksi'] = ksi
         gain_parameters['gamma'] = gamma
-        hw = suppression_gain(gain_parameters, nFFT, gain_method)
+        hw = ns_gain(gain_parameters)
 
         xi_w = np.fft.ifft(hw * spec, nFFT, axis=0)
         xi_w = np.real(xi_w)
@@ -110,6 +111,7 @@ def main():
 
         x_old = xi_w[len1:Slen]
         prev_ksi = ksi
+
 
     sf.write(output_file, xfinal, Srate)
     plt.figure(2)
