@@ -34,15 +34,14 @@ def main():
 
         x = noisy_wav
         frame_size = noise_suppressor.get_frame_size()
-        fft_size = noise_suppressor.get_fft_size()
-        num_frames = int(np.floor(len(x) / frame_size) - np.floor(fft_size / frame_size))
-        xfinal = np.zeros(num_frames * frame_size)
+        xfinal = np.zeros(len(x))
 
         # Start Processing
-        for i in range(num_frames):
-            k = range(i*frame_size, (i + 1)*frame_size)
-            frame = x[k]
-            xfinal[k] =  noise_suppressor.process_frame(frame)
+        k = 0
+        while k + frame_size < len(x):
+            frame = x[k : k + frame_size]
+            xfinal[k : k + frame_size] =  noise_suppressor.process_frame(frame)
+            k += frame_size
 
         # Save Results
         xfinal = xfinal / max(np.abs(xfinal))
