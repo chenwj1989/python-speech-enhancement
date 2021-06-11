@@ -5,13 +5,13 @@ A python library for speech enhancement.
 
 ## Usage
 
-The example test_pns.py shows how to use the noise suppression library. The python-pesq should be installed before running test_pns.
+The example test_pns.py shows how to do noise suppression on wav files. The python-pesq package should be installed in order to evaluate the output.
 ```
 pip install pesq
 python test_pns.py
 ```
 
-The major steps to do noise suppression is shown below. The NoiseSuppressor process audio data block by block.
+Major steps of using the noise suppression library are shown below. The NoiseSuppressor processes audio data block by block.
 ```python
 # Initialize
 fs = 16000
