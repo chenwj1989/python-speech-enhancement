@@ -7,6 +7,13 @@ from .suppression_gain import OmlsaGain
 '''
 Constants
 '''
+# 1) Parameters of Short Time Fourier Analysis:
+Fs_ref = 16e3		# 1.1) Reference Sampling frequency
+M_ref = 512		# 1.2) Size of analysis window
+#Mo_ref = 0.75*M_ref	# 1.3) Number of overlapping samples in consecutive frames
+Mo_ref = 352
+Mno_ref = 160
+
 # zero_thres is a threshold for discriminating between zero and nonzero sample.
 zero_thres = 1e-10    
 
@@ -15,17 +22,23 @@ zero_thres = 1e-10
 Class
 '''
 class NoiseSuppressor(object):
-    def __init__(self, sample_rate, frame_size, fft_size, overlap_size):
+    def __init__(self, sample_rate):
         self.sample_rate = sample_rate
-        self.frame_size = frame_size
-        self.overlap_size = overlap_size
-        self.fft_size = fft_size
-        self.win =np.hamming(fft_size)
-        self.in_buffer = np.zeros(fft_size)
-        self.out_buffer = np.zeros(fft_size)
+        self.frame_size = Mno_ref
+        self.overlap_size = Mo_ref
+        self.fft_size = M_ref
+        self.win =np.hamming(self.fft_size)
+        self.in_buffer = np.zeros(self.fft_size)
+        self.out_buffer = np.zeros(self.fft_size)
         self.noise_estimator = ImcraNoiseEstimator()
-        self.suppression_gain = OmlsaGain(sample_rate, fft_size)
+        self.suppression_gain = OmlsaGain(sample_rate, self.fft_size)
         self.fnz_flag = 0     # flag for the first frame which is non-zero  
+    
+    def get_frame_size(self):
+        return self.frame_size
+
+    def get_fft_size(self):
+        return self.fft_size
 
     def stft_analyze(self, audio):
         M = self.fft_size

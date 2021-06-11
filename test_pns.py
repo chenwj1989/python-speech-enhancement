@@ -30,14 +30,13 @@ def main():
         noisy_wav, fs = sf.read(input_file)
 
         # Initialize
+        noise_suppressor = NoiseSuppressor(fs)
+
         x = noisy_wav
-        frame_size = 160
-        fft_size = 512
-        overlap_size = 352
+        frame_size = noise_suppressor.get_frame_size()
+        fft_size = noise_suppressor.get_fft_size()
         num_frames = int(np.floor(len(x) / frame_size) - np.floor(fft_size / frame_size))
         xfinal = np.zeros(num_frames * frame_size)
-
-        noise_suppressor = NoiseSuppressor(fs, frame_size, fft_size, overlap_size)
 
         # Start Processing
         for i in range(num_frames):
