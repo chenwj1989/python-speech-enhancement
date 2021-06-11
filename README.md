@@ -3,6 +3,24 @@ A python library for speech enhancement.
 
 ![Noise Suppression Flow Diagram](https://wjchen.net/static/posts/ns_flow.png)
 
+## Usage
+```python
+# Initialize
+fs = 16000
+noise_suppressor = NoiseSuppressor(fs)
+frame_size = noise_suppressor.get_frame_size()
+fft_size = noise_suppressor.get_fft_size()
+
+# Process
+x = noisy_wav
+xfinal = x      
+k = 0
+while k + frame_size < len(x):
+    k = range(i*frame_size, (i + 1)*frame_size)
+    frame = x[k]
+    xfinal[k] =  noise_suppressor.process_frame(frame)
+```
+
 ## Features
 - [x] STFT Analysis and Synthesis
 - [x] Support sample rate 16000
